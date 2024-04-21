@@ -1,10 +1,10 @@
+
 from dotenv import load_dotenv
 import os
 import base64
 import random
 from requests import post, get
-import json 
-import time 
+import json
 import customtkinter
 import requests
 import spotipy
@@ -12,6 +12,8 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from PIL import Image, ImageTk
 from io import BytesIO
 import sys
+import tracemalloc
+tracemalloc.start()
 
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("green")
@@ -21,6 +23,28 @@ client_id = os.getenv("CLIENT_ID")
 client_secret = os.getenv("CLIENT_SECRET")
 auth_manager = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
 sp = spotipy.Spotify(auth_manager=auth_manager)
+
+def main():
+    root = customtkinter.CTk()
+    windowwidth = root.winfo_screenwidth()
+    windowheight = root.winfo_screenheight()
+    w = 500
+    h = 900
+    x_coordinate = windowwidth - 500
+    root.geometry(f'{w}x{h}+{x_coordinate}+{0}')
+    frame = customtkinter.CTkFrame(master=root)
+    frame.pack(pady=20, padx=60, fill="both", expand=True)
+    label = customtkinter.CTkLabel(master=frame, text="My Spotify Help")
+    label.pack(pady=12, padx=10)
+    button = customtkinter.CTkButton(master=frame, text="New Albums", command=lambda:albumgenerator(root))
+    button.pack(pady=5)
+    button2 = customtkinter.CTkButton(master=frame, text="Find New Artists", command=lambda:relatedartists(root))
+    button2.pack(pady=5)
+    button3 = customtkinter.CTkButton(master=frame, text="Exit", command=exitprogram)
+    button3.pack(pady=5)
+    token = get_token()
+    root.mainloop()
+
 
 def get_token():
     auth_string = client_id + ":" + client_secret
@@ -37,8 +61,6 @@ def get_token():
     json_result = json.loads(result.content)
     token = json_result["access_token"]
     return token
-
-
 
 def search_for_artist(token, artist_name):
     url = "https://api.spotify.com/v1/search"
@@ -63,7 +85,15 @@ def get_songs_by_artist(token, artist_id):
     json_result = json.loads(result.content)["tracks"]
     return json_result
 
+# async def fetch_related_artists(artist_id, token, session):
+#     url= f"https://api.spotify.com/v1/artists/{artist_id}/related-artists"
+#     headers = {"Authorization": "Bearer " +token}
+#     async with session.get(url, headers=headers) as response:
+#         return await response.json()
+
 def get_related_artists(token, artist_id):
+     # async with aiohttp.ClientSession() as session:
+     #    return await fetch_related_artists(artist_id, token, session)
     url= f"https://api.spotify.com/v1/artists/{artist_id}/related-artists"
     headers = get_auth_header(token)
     result = get(url, headers=headers)
@@ -81,13 +111,12 @@ def generaterandom():
         playlists = results['playlists']['items']
         random.shuffle(playlists)
         for playlist in playlists: 
-            playlists_tracks = sp.playlist_tracks(playlist['id'])
+            playlists_tracks = sp.playlist_items(playlist['id'])
             for track in playlists_tracks['items']:
                 album = track['track']['album']
                 if album not in albums and album['album_type'] == 'album':
                     albums.append(album)
     return albums
-    
 
 def randomg(frameag, topag):
     #grid = [[None for _ in range(4)]  for _ in range(4)]
@@ -114,8 +143,7 @@ def randomg(frameag, topag):
     # backbutton = customtkinter.CTkButton(master=frameag, text="Submit", command=frameag.destroy())
     # backbutton.pack(pady=20, padx=60)
 
-
-def albumgenerator():
+def albumgenerator(root):
     topag = customtkinter.CTkToplevel()
     windowheight = root.winfo_screenheight()
     w = 900
@@ -127,10 +155,11 @@ def albumgenerator():
     frameag = customtkinter.CTkFrame(master=topag)
     frameag.pack(pady=20, padx=60, fill="both", expand=True)
     randomg(frameag, topag)
-    
+    back_button = customtkinter.CTkButton(master=frameag, text="Back", command=topag.destroy)
+    back_button.pack(pady=20, padx=60)
 
 
-def relatedartists():
+def relatedartists(root):
     topra = customtkinter.CTkToplevel()
     windowheight = root.winfo_screenheight()
     w = 900
@@ -154,69 +183,17 @@ def relatedartists():
         artists = get_related_artists(token, artist_id)
         stringoutput = "" 
         for i, artist in enumerate(artists["artists"]):
-            stringoutput = stringoutput + f"{i+1}. {artist['name']}\n"
-        LabelArtists = customtkinter.CTkLabel(master=framera, text=stringoutput)
+            stringoutput += f"{i+1}. {artist['name']}\n"
+        font = customtkinter.CTkFont(family="Arial", size=12)
+        LabelArtists = customtkinter.CTkLabel(master=framera, text=stringoutput, font=font)
         LabelArtists.pack()
 
     button = customtkinter.CTkButton(master=framera, text="Submit", command=getArtistName)
-    button.pack(pady=20, padx=60)
-    #buttonback = customtkinter.CTkButton(master=framera, text="Clear", command=cleartext)
-    #buttonback.pack(pady=20, padx=60)
-    
+    button.pack(pady=10, padx=60)
+
+    backbutton = customtkinter.CTkButton(master=framera, text="Back", command=topra.destroy)
+    backbutton.pack(pady=20, padx=60)
 
 def exitprogram():
     sys.exit()
         
-
-root = customtkinter.CTk()
-windowwidth = root.winfo_screenwidth()
-windowheight = root.winfo_screenheight()
-w = 500
-h = 900
-x_coordinate = windowwidth - 500
-root.geometry(f'{w}x{h}+{x_coordinate}+{0}')
-
-frame = customtkinter.CTkFrame(master=root)
-frame.pack(pady=20, padx=60, fill="both", expand=True)
-
-label = customtkinter.CTkLabel(master=frame, text="My Spotify Help")
-label.pack(pady=12, padx=10)
-
-button = customtkinter.CTkButton(master=frame, text="New Albums", command=albumgenerator)
-button.pack()
-
-button2 = customtkinter.CTkButton(master=frame, text="Find New Artists", command=relatedartists)
-button2.pack()
-
-button3 = customtkinter.CTkButton(master=frame, text="Exit", command=exitprogram)
-button3.pack()
-
-token = get_token()
-root.mainloop()
-
-
-
-
-
-
-
-
-
-    
-
-
-
-'''token = get_token()
-result = search_for_artist(token, "Travis Scott")
-artist_id = result["id"]
-songs = get_songs_by_artist(token, artist_id)
-
-for i, song in enumerate(songs):
-    print(f"{i+1}. {song['name']}")
-
-print("")
-
-artists = get_related_artists(token, artist_id)
-for i, artist in enumerate(artists["artists"]):
-    print(f"{i+1}. {artist['name']}")
-'''
