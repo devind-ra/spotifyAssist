@@ -40,8 +40,10 @@ def main():
     button.pack(pady=5)
     button2 = customtkinter.CTkButton(master=frame, text="Find New Artists", command=lambda:relatedartists(root))
     button2.pack(pady=5)
-    button3 = customtkinter.CTkButton(master=frame, text="Exit", command=exitprogram)
-    button3.pack(pady=5)
+    # button3 = customtkinter.CTkButton(master=frame, text="Explore Artist", command=lambda: exploreartists(root))
+    # button3.pack(pady=5)
+    button4 = customtkinter.CTkButton(master=frame, text="Exit", command=exitprogram)
+    button4.pack(pady=5)
     token = get_token()
     root.mainloop()
 
@@ -85,12 +87,6 @@ def get_songs_by_artist(token, artist_id):
     json_result = json.loads(result.content)["tracks"]
     return json_result
 
-# async def fetch_related_artists(artist_id, token, session):
-#     url= f"https://api.spotify.com/v1/artists/{artist_id}/related-artists"
-#     headers = {"Authorization": "Bearer " +token}
-#     async with session.get(url, headers=headers) as response:
-#         return await response.json()
-
 def get_related_artists(token, artist_id):
      # async with aiohttp.ClientSession() as session:
      #    return await fetch_related_artists(artist_id, token, session)
@@ -119,11 +115,15 @@ def generaterandom():
     return albums
 
 def randomg(frameag, topag):
+    for widget in frameag.winfo_children():
+        if isinstance(widget, customtkinter.CTkLabel):
+            widget.destroy()
     #grid = [[None for _ in range(4)]  for _ in range(4)]
     albums = sp.new_releases(country='GB', limit=50)
     album_items = albums['albums']['items']
     random.shuffle(album_items)
-    for i in range(6):
+    minimumnumber = min(6, len(album_items))
+    for i in range(minimumnumber):
         albumname = album_items[i]['name']
         albumimage = album_items[i]['images']
         albumurl = albumimage[0]['url']
@@ -134,14 +134,28 @@ def randomg(frameag, topag):
         resized = img.resize(newsize, Image.ANTIALIAS)
         img = ImageTk.PhotoImage(resized)
         artistnames = ', '.join(artist['name'] for artist in album_items[i]['artists'])
-        label = customtkinter.CTkLabel(master=frameag, text=f"Album Name: {albumname}", font=("Arial", 12))
+        label = customtkinter.CTkLabel(master=frameag, text=f"Album Name: {albumname}", font=("Arial", 10))
         label.pack()
         labelimage = customtkinter.CTkLabel(master=frameag, image=img, text="")
         labelimage.pack()
-        label2 = customtkinter.CTkLabel(master=frameag, text=(f"Artist(s): {artistnames}"), font=("Arial", 12))
+        label2 = customtkinter.CTkLabel(master=frameag, text=(f"Artist(s): {artistnames}"), font=("Arial", 10))
         label2.pack()
-    # backbutton = customtkinter.CTkButton(master=frameag, text="Submit", command=frameag.destroy())
-    # backbutton.pack(pady=20, padx=60)
+
+
+# def exploreartists(root):
+#     topea = customtkinter.CTkToplevel()
+#     windowheight = root.winfo_screenheight()
+#     w = 900
+#     h = windowheight // 1.5
+#     y_position = h - topea.winfo_reqheight()
+#     topea.geometry(f'{w}x{h}+{0}+{y_position}')
+#     topea.title("Related Artists")
+#     topea.focus_set()
+#     frameea = customtkinter.CTkFrame(master=topea)
+#     frameea.pack(pady=20, padx=60, fill="both", expand=True)
+#     artistentry = customtkinter.CTkEntry(master=frameea, placeholder_text="Enter Artist Name")
+#     artistentry.pack(pady=20, padx=60)
+
 
 def albumgenerator(root):
     topag = customtkinter.CTkToplevel()
@@ -154,9 +168,12 @@ def albumgenerator(root):
     topag.focus_set()
     frameag = customtkinter.CTkFrame(master=topag)
     frameag.pack(pady=20, padx=60, fill="both", expand=True)
-    randomg(frameag, topag)
+    random_button = customtkinter.CTkButton(master=frameag, text="Randomise Again", command=lambda: randomg(frameag, topag))
+    random_button.pack(pady=5, padx=60)
     back_button = customtkinter.CTkButton(master=frameag, text="Back", command=topag.destroy)
-    back_button.pack(pady=20, padx=60)
+    back_button.pack(pady=5, padx=60)
+    randomg(frameag, topag)
+
 
 
 def relatedartists(root):
