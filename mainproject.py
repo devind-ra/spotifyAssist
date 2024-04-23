@@ -35,19 +35,20 @@ def main():
     root.geometry(f'{w}x{h}+{x_coordinate}+{0}')
     frame = customtkinter.CTkFrame(master=root)
     frame.pack(pady=20, padx=60, fill="both", expand=True)
-    label = customtkinter.CTkLabel(master=frame, text="My Spotify Help")
-    label.pack(pady=12, padx=10)
-    button = customtkinter.CTkButton(master=frame, text="New Albums", command=lambda:albumgenerator(root))
+    fonttitle = customtkinter.CTkFont(family="Raleway", size=25, weight="bold")
+    label = customtkinter.CTkLabel(master=frame, text="Spotify Assist", font=fonttitle)
+    label.pack(pady=30, padx=10)
+    fontbutton = customtkinter.CTkFont(family="Raleway", size=15)
+    button = customtkinter.CTkButton(master=frame, text="New Albums", font=fontbutton, command=lambda:albumgenerator(root))
     button.pack(pady=5)
-    button2 = customtkinter.CTkButton(master=frame, text="Find New Artists", command=lambda:relatedartists(root))
+    button2 = customtkinter.CTkButton(master=frame, text="Find New Artists", font=fontbutton, command=lambda:relatedartists(root))
     button2.pack(pady=5)
-    button3 = customtkinter.CTkButton(master=frame, text="Explore Artist", command=lambda: exploreartists(root))
+    button3 = customtkinter.CTkButton(master=frame, text="Explore Artist", font=fontbutton, command=lambda: exploreartists(root))
     button3.pack(pady=5)
-    button4 = customtkinter.CTkButton(master=frame, text="Exit", command=exitprogram)
-    button4.pack(pady=5)
+    button4 = customtkinter.CTkButton(master=frame, text="Exit", font=fontbutton, command=exitprogram)
+    button4.pack(pady=50)
     token = get_token()
     root.mainloop()
-
 
 def get_token():
     auth_string = client_id + ":" + client_secret
@@ -143,6 +144,7 @@ def randomg(frameag, topag):
     random.shuffle(album_items)
     minimumnumber = min(6, len(album_items))
     futures = []
+    fontalbum = customtkinter.CTkFont(family="Raleway", size=10)
 
     for i in range(minimumnumber):
         albumname = album_items[i]['name']
@@ -158,12 +160,12 @@ def randomg(frameag, topag):
         resized = img.resize(newsize, Image.ANTIALIAS)
         img = ImageTk.PhotoImage(resized)
         artistnames = ', '.join(artist['name'] for artist in album_items[i]['artists'])
-        label = customtkinter.CTkLabel(master=frameag, text=f"Album Name: {albumname}", font=("Arial", 10))
+        label = customtkinter.CTkLabel(master=frameag, text=f"Album Name: {albumname}", font=fontalbum)
         label.pack()
         labelimage = customtkinter.CTkLabel(master=frameag, image=img, text="")
         labelimage.pack()
         labelimage.image = img
-        label2 = customtkinter.CTkLabel(master=frameag, text=(f"Artist(s): {artistnames}"), font=("Arial", 10))
+        label2 = customtkinter.CTkLabel(master=frameag, text=(f"Artist(s): {artistnames}"), font=fontalbum)
         label2.pack()
 
 def exploreartists(root):
@@ -177,7 +179,8 @@ def exploreartists(root):
     topea.focus_set()
     frameea = customtkinter.CTkScrollableFrame(master=topea)
     frameea.pack(pady=20, padx=60, fill="both", expand=True)
-    artistentry = customtkinter.CTkEntry(master=frameea, placeholder_text="Enter Artist Name")
+    fontinput = customtkinter.CTkFont(family="Raleway", size=12)
+    artistentry = customtkinter.CTkEntry(master=frameea, font=fontinput, placeholder_text="Enter Artist Name")
     artistentry.pack(pady=20, padx=60)
     def getAlbums():
         for widget in frameea.winfo_children():
@@ -207,7 +210,8 @@ def exploreartists(root):
             newsize = (40, 40)
             resized = img.resize(newsize, Image.ANTIALIAS)
             img = ImageTk.PhotoImage(resized)
-            label = customtkinter.CTkLabel(master=albumframe, text=f"{albumnames[i]}")
+            fontalbum = customtkinter.CTkFont(family="Raleway", size=16)
+            label = customtkinter.CTkLabel(master=albumframe, font=fontalbum, text=f"{albumnames[i]}")
             label.grid(row=i, column=0, padx=10, pady=10)
             imageoutput = customtkinter.CTkLabel(master=albumframe, image=img, text=" ")
             imageoutput.image = img
@@ -237,9 +241,10 @@ def albumgenerator(root):
     topag.focus_set()
     frameag = customtkinter.CTkFrame(master=topag)
     frameag.pack(pady=20, padx=60, fill="both", expand=True)
-    random_button = customtkinter.CTkButton(master=frameag, text="Randomise Again", command=lambda: randomg(frameag, topag))
+    fontbutton = customtkinter.CTkFont(family="Raleway", size=15)
+    random_button = customtkinter.CTkButton(master=frameag, text="Randomise Again", font=fontbutton, command=lambda: randomg(frameag, topag))
     random_button.pack(pady=5, padx=60)
-    back_button = customtkinter.CTkButton(master=frameag, text="Back", command=topag.destroy)
+    back_button = customtkinter.CTkButton(master=frameag, text="Back", font=fontbutton, command=topag.destroy)
     back_button.pack(pady=5, padx=60)
     randomg(frameag, topag)
 
@@ -256,7 +261,8 @@ def relatedartists(root):
     topra.focus_set()
     framera = customtkinter.CTkFrame(master=topra)
     framera.pack(pady=20, padx=60, fill="both", expand=True)
-    artistentry = customtkinter.CTkEntry(master=framera, placeholder_text="Enter Artist Name")
+    fontinput = customtkinter.CTkFont(family="Raleway", size=12)
+    artistentry = customtkinter.CTkEntry(master=framera, font=fontinput, placeholder_text="Enter Artist Name")
     artistentry.pack(pady=20, padx=60)
     def getArtistName():
         global LabelArtists
@@ -270,14 +276,15 @@ def relatedartists(root):
         stringoutput = "" 
         for i, artist in enumerate(artists["artists"]):
             stringoutput += f"{i+1}. {artist['name']}\n"
-        font = customtkinter.CTkFont(family="Arial", size=16)
+        font = customtkinter.CTkFont(family="Raleway", size=16)
         LabelArtists = customtkinter.CTkLabel(master=framera, text=stringoutput, font=font)
         LabelArtists.pack()
 
-    button = customtkinter.CTkButton(master=framera, text="Submit", command=getArtistName)
+    fontbutton = customtkinter.CTkFont(family="Raleway", size=15)
+    button = customtkinter.CTkButton(master=framera, text="Submit", font=fontbutton, command=getArtistName)
     button.pack(pady=10, padx=60)
 
-    backbutton = customtkinter.CTkButton(master=framera, text="Back", command=topra.destroy)
+    backbutton = customtkinter.CTkButton(master=framera, text="Back", font=fontbutton, command=topra.destroy)
     backbutton.pack(pady=20, padx=60)
 
 def exitprogram():
