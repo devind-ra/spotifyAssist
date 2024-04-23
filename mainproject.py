@@ -40,8 +40,8 @@ def main():
     button.pack(pady=5)
     button2 = customtkinter.CTkButton(master=frame, text="Find New Artists", command=lambda:relatedartists(root))
     button2.pack(pady=5)
-    # button3 = customtkinter.CTkButton(master=frame, text="Explore Artist", command=lambda: exploreartists(root))
-    # button3.pack(pady=5)
+    button3 = customtkinter.CTkButton(master=frame, text="Explore Artist", command=lambda: exploreartists(root))
+    button3.pack(pady=5)
     button4 = customtkinter.CTkButton(master=frame, text="Exit", command=exitprogram)
     button4.pack(pady=5)
     token = get_token()
@@ -83,9 +83,28 @@ def get_auth_header(token):
 def get_songs_by_artist(token, artist_id):
     url = f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks?country=GB"
     headers = get_auth_header(token)
-    result = get(url, headers=headers)
-    json_result = json.loads(result.content)["tracks"]
-    return json_result
+    result = requests.get(url, headers=headers)
+    if result.status_code == 200:
+        json_result = result.json()
+        tracks = json_result.get("tracks", [])
+        songs = [track["name"] for track in tracks]
+        return songs
+    else:
+        print(f"Status code: {result.status_code}")
+        return []
+
+def get_albums_by_artist(token, artist_id):
+    url = f"https://api.spotify.com/v1/artists/{artist_id}/albums"
+    headers = get_auth_header(token)
+    result = requests.get(url, headers=headers)
+    if result.status_code == 200:
+        json_result = result.json()
+        albums = json_result.get("items", [])
+        return albums
+
+    else:
+        print(f"Status code: {result.status_code}")
+        return []
 
 def get_related_artists(token, artist_id):
      # async with aiohttp.ClientSession() as session:
@@ -102,8 +121,8 @@ def generaterandom():
     categoryids = [category['id'] for category in categories['categories']['items']]
     albums = []
 
-    for categortid in categoryids: 
-        results = sp.category_playlists(category_id=categortid, limit=limit)
+    for categoryid in categoryids:
+        results = sp.category_playlists(category_id=categoryid, limit=limit)
         playlists = results['playlists']['items']
         random.shuffle(playlists)
         for playlist in playlists: 
@@ -142,19 +161,59 @@ def randomg(frameag, topag):
         label2.pack()
 
 
-# def exploreartists(root):
-#     topea = customtkinter.CTkToplevel()
-#     windowheight = root.winfo_screenheight()
-#     w = 900
-#     h = windowheight // 1.5
-#     y_position = h - topea.winfo_reqheight()
-#     topea.geometry(f'{w}x{h}+{0}+{y_position}')
-#     topea.title("Related Artists")
-#     topea.focus_set()
-#     frameea = customtkinter.CTkFrame(master=topea)
-#     frameea.pack(pady=20, padx=60, fill="both", expand=True)
-#     artistentry = customtkinter.CTkEntry(master=frameea, placeholder_text="Enter Artist Name")
-#     artistentry.pack(pady=20, padx=60)
+def exploreartists(root):
+    topea = customtkinter.CTkToplevel()
+    windowheight = root.winfo_screenheight()
+    w = 900
+    h = windowheight // 1.5
+    y_position = h - topea.winfo_reqheight()
+    topea.geometry(f'{w}x{h}+{0}+{y_position}')
+    topea.title("Related Artists")
+    topea.focus_set()
+    frameea = customtkinter.CTkScrollableFrame(master=topea)
+    frameea.pack(pady=20, padx=60, fill="both", expand=True)
+    artistentry = customtkinter.CTkEntry(master=frameea, placeholder_text="Enter Artist Name")
+    artistentry.pack(pady=20, padx=60)
+    def getSongs():
+        for widget in frameea.winfo_children():
+            if isinstance(widget, customtkinter.CTkFrame):
+                widget.destroy()
+        token = get_token()
+        text = artistentry.get()
+        result = search_for_artist(token, text)
+        artist_id = result['id']
+        output = get_albums_by_artist(token, artist_id)
+        albumnames = []
+        albumimages = []
+        for album in output:
+            if album["album_type"] == "album":
+                albumnames.append(album["name"])
+                albumimages.append(album["images"][0]["url"])
+        albumframe = customtkinter.CTkFrame(master=frameea)
+        albumframe.pack(pady=20,padx=60)
+        stringoutput = ""
+        for i in range(len(albumnames)):
+            label = customtkinter.CTkLabel(master=albumframe, text=f"{albumnames[i]}")
+            label.grid(row=i, column=0, padx=10, pady=10)
+            response = requests.get(albumimages[i])
+            imgdata = response.content
+            img = Image.open(BytesIO(imgdata))
+            newsize = (40, 40)
+            resized = img.resize(newsize, Image.ANTIALIAS)
+            img = ImageTk.PhotoImage(resized)
+            imageoutput = customtkinter.CTkLabel(master=albumframe, image=img, text=" ")
+            imageoutput.image = img
+            imageoutput.grid(row=i, column=1, padx=10, pady=10)
+
+        font = customtkinter.CTkFont(family="Arial", size=16)
+        LabelArtists = customtkinter.CTkLabel(master=frameea, text=stringoutput, font=font)
+        LabelArtists.pack()
+
+    button = customtkinter.CTkButton(master=frameea, text="Submit", command=getSongs)
+    button.pack(pady=10, padx=60)
+    back_button = customtkinter.CTkButton(master=frameea, text="Back", command=topea.destroy)
+    back_button.pack(pady=5, padx=60)
+
 
 
 def albumgenerator(root):
@@ -201,7 +260,7 @@ def relatedartists(root):
         stringoutput = "" 
         for i, artist in enumerate(artists["artists"]):
             stringoutput += f"{i+1}. {artist['name']}\n"
-        font = customtkinter.CTkFont(family="Arial", size=12)
+        font = customtkinter.CTkFont(family="Arial", size=16)
         LabelArtists = customtkinter.CTkLabel(master=framera, text=stringoutput, font=font)
         LabelArtists.pack()
 
