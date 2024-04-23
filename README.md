@@ -1,1 +1,6 @@
-Utilises the Spotify API to find new releases on Spotify and find related artists to your music taste
+Features:
+- View a random choice of new releases
+- Discover new artists based on your favourite artist
+- Explore artists' discography
+  
+Run main.py
